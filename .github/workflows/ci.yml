@@ -37,7 +37,7 @@ jobs:
 
       - name: Type-check (mypy)
         run: |
-          mypy src --ignore-missing-imports
+          mypy ideeza --ignore-missing-imports
 
       - name: Run Django tests (fast test settings)
         env:
