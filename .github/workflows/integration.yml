@@ -1,0 +1,78 @@
+name: Integration Tests (Postgres + Redis)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ideeza_integration
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ideeza_integration"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:6
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Wait for Postgres
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do sleep 1; done
+
+      - name: Export env
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ideeza_integration
+          REDIS_URL: redis://localhost:6379/1
+        run: |
+          echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
+          echo "REDIS_URL=$REDIS_URL" >> $GITHUB_ENV
+
+      - name: Run migrations
+        run: |
+          python manage.py migrate --noinput
+
+      - name: Pre-calculate (dry-run)
+        run: |
+          python manage.py precalculate_stats --dry-run
+
+      - name: Run integration tests
+        run: |
+          python manage.py test -v 2
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: .

@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.11, 3.13]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies (runtime)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install dev tools
+        run: |
+          pip install ruff mypy
+
+      - name: Lint (ruff)
+        run: |
+          ruff check .
+
+      - name: Type-check (mypy)
+        run: |
+          mypy src --ignore-missing-imports
+
+      - name: Run Django tests (fast test settings)
+        env:
+          DJANGO_SETTINGS_MODULE: ideeza.test_settings
+        run: |
+          python manage.py test -v 2 --settings=ideeza.test_settings
