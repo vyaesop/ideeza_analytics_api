@@ -1,6 +1,6 @@
 # Ideeza Analytics API
 
-[![CI](https://github.com/vyaesop/ideeza_api/actions/workflows/ci.yml/badge.svg)](https://github.com/vyaesop/ideeza_api/actions/workflows/ci.yml)
+[![CI](https://github.com/vyaesop/ideeza_analytics_api/actions/workflows/ci.yml/badge.svg)](https://github.com/vyaesop/ideeza_analytics_api/actions/workflows/ci.yml)
 
 Professional Django analytics service.
 
