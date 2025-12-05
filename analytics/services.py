@@ -19,8 +19,6 @@ from django.conf import settings
 from .models import BlogView, DailyAnalyticsSummary, Blog
 from django_redis import get_redis_connection
 
-from .models import BlogView, DailyAnalyticsSummary
-
 logger = logging.getLogger(__name__)
 
 
@@ -501,8 +499,6 @@ class AnalyticsService:
                 # build the same keys that precalc writes: analytics:hll:{date}:{country_id or all}:{author_id or all}
                 if getattr(settings, "IDEEZA_USE_HLL", False):
                     try:
-                        from django_redis import get_redis_connection
-
                         redis_conn = get_redis_connection()
                     except Exception:
                         redis_conn = None
