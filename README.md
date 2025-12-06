@@ -151,3 +151,29 @@ A GitHub Actions workflow `./github/workflows/integration.yml` is included to ru
 - Python 3.11 / Django 4.2 / DRF
 - PostgreSQL 15 / Redis 7
 - Docker / Swagger (drf-yasg)
+
+---
+
+## Recent Settings Fixes (applied Dec 06, 2025)
+
+I made a small, focused fix to `ideeza/settings.py` to make the project easier
+to run locally and in CI without requiring external services to be present.
+
+- **Database fallback:** If `DATABASE_URL` is not set the settings now fall
+	back to a local SQLite database (`db.sqlite3`). This ensures `manage.py
+	test` and local development work without needing a remote database.
+
+- **Cache fallback for tests:** When `REDIS_URL` is not configured — or when
+	running the Django test command — the cache backend falls back to
+	Django's `LocMemCache`. This prevents test-time failures caused by a
+	missing Redis server and keeps tests hermetic.
+
+- **STATIC_URL normalization:** `STATIC_URL` was normalized to start with a
+	leading slash (`/static/`) for consistent behavior across setups.
+
+Why:
+
+- The changes are minimal and intentionally conservative: they keep the
+	production-ready Redis/Postgres behavior when those env vars are set, but
+	make the repository robust for reviewers running the test-suite locally or
+	in CI environments that don't provide Redis.
